@@ -104,31 +104,76 @@ jobs:
           version=$(python -c 'import json; print(json.load(open("openrac-mod.json"))["version"])')
           python "$sdk/tools/package_mod.py" --merge dist/ryno-ammo-drops-"$version"-*.zip -o dist/ryno-ammo-drops-"$version".zip
           ls -l dist
+      - name: Generate ZIP checksums for OpenRAC
+        run: |
+          (cd dist && sha256sum *.zip > SHA256SUMS)
+          cat dist/SHA256SUMS
       - name: Upload test builds for download
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: RYNO-Ammo-Drops-Compiled
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
           if-no-files-found: error
 
   release:
-    name: Publish release on version tags
+    name: Publish GitHub Release
     needs: combined
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Publish when main succeeds; do not publish from dev or PRs.
+    # A manually pushed version tag is also supported.
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-24.04
     permissions:
       contents: write
       actions: read
     steps:
+      - name: Checkout version manifest
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Download combined build
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: RYNO-Ammo-Drops-Compiled
           path: dist
-      - name: Publish GitHub Release
+      - name: Publish versioned GitHub Release for OpenRAC
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
+        shell: bash
         run: |
-          gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag dist/*.zip
+          set -euo pipefail
+          version=$(python3 -c 'import json; print(json.load(open("openrac-mod.json"))["version"])')
+          tag="v${version}"
+          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF_NAME" != "$tag" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version $tag"
+            exit 1
+          fi
+          # The launcher installs platform-specific release assets rather than Actions artifacts.
+          for platform in windows-x86_64 linux-x86_64 macos-arm64 macos-x86_64; do
+            test -f "dist/ryno-ammo-drops-${version}-${platform}.zip" || {
+              echo "::error::Missing release asset for $platform"
+              exit 1
+            }
+          done
+          test -f "dist/ryno-ammo-drops-${version}.zip"
+          test -f dist/SHA256SUMS
+          (cd dist && sha256sum -c SHA256SUMS)
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::notice::Release $tag already exists; no duplicate published. Bump the manifest version for the next release."
+            exit 0
+          fi
+          printf '%s\n' \
+            "RYNO Ammo Drops $tag for OpenRAC Ratchet & Clank 1." \
+            "" \
+            "Experimental community-testing release. RYNO ammo can drop from random ammo crates after ownership, with normal low-ammo weighting." \
+            "NTSC-U in-game tested; PAL build compiled but gameplay not yet verified." \
+            "" \
+            "OpenRAC Launcher: install from https://github.com/glawks/RYNO-Ammo-Drops or use the platform ZIP asset." > release-notes.md
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            gh release create "$tag" --verify-tag --title "$tag" --notes-file release-notes.md dist/*.zip dist/SHA256SUMS
+          else
+            # Creating this release also creates its version tag at the tested main commit.
+            gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --notes-file release-notes.md dist/*.zip dist/SHA256SUMS
+          fi
