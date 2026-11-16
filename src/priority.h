@@ -2,6 +2,9 @@
  * Decision helper for a RYNO pickup competing with the normal low-ammo pool. */
 #ifndef RYNO_AMMO_PRIORITY_H
 #define RYNO_AMMO_PRIORITY_H
+
+/* RAC1's inventory/ammo-table index (not GadgetId, where RYNO is 8). */
+#define RYNO_ITEM_ID 0x17u
 #include <stdint.h>
 
 /* On a random ammo-crate drop, if RYNO is underfull, give it one equal-weight
