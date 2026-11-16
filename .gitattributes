@@ -1,0 +1,6 @@
+# Keep packaging input byte-identical on Windows, Linux and macOS.
+# OpenRAC's --merge rejects differing README/LICENSE bytes between platforms.
+* text=auto eol=lf
+*.zip binary
+*.png binary
+*.glb binary
