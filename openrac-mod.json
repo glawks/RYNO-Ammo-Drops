@@ -2,7 +2,7 @@
   "format": 2,
   "id": "ryno-ammo-drops",
   "name": "RYNO Ammo Drops",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "glawks",
   "description": "After you own the RYNO, random ammo crates can drop its ammunition alongside ordinary weapon ammo, with the normal priority for weapons that are low on ammo. Fixed ammo crates and enemy drops are unchanged.",
   "license": "MIT",
