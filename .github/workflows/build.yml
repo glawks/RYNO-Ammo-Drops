@@ -1,0 +1,134 @@
+name: Build and test
+
+on:
+  push:
+    branches: [dev, main]
+    tags: ["v*"]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x86_64
+            os: windows-2025
+          - name: linux-x86_64
+            os: ubuntu-22.04
+          - name: macos-arm64
+            os: macos-15
+            configure: -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+          - name: macos-x86_64
+            os: macos-15
+            configure: -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+            skip_tests: true
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Ninja
+        run: python -m pip install ninja
+      - name: Set up MSVC
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          cmd /c "`"$vs\VC\Auxiliary\Build\vcvars64.bat`" && set" | ForEach-Object {
+            if ($_ -match '^([^=]+)=(.*)$') { "$($matches[1])=$($matches[2])" | Out-File -Append $env:GITHUB_ENV }
+          }
+      - name: Download and verify pinned OpenRAC SDK
+        run: python tools/fetch_sdk.py
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release ${{ matrix.configure }}
+      - name: Compile
+        run: cmake --build build --parallel
+      - name: Run tests
+        if: ${{ !matrix.skip_tests }}
+        run: ctest --test-dir build --output-on-failure
+      - name: Package OpenRAC mod
+        run: |
+          sdk=".sdk/openrac-mod-sdk-$(python -c 'import json; print(json.load(open("sdk.lock"))["version"])')"
+          python "$sdk/tools/package_mod.py" build/package/* -o dist
+          ls -l dist
+      - name: Upload compiled mod
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-${{ matrix.name }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+  combined:
+    name: Combined downloadable build
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Download pinned OpenRAC SDK
+        run: python tools/fetch_sdk.py
+      - name: Download platform builds
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: build-*
+          path: dist
+          merge-multiple: true
+      - name: Merge Windows, Linux and macOS into one installable ZIP
+        run: |
+          sdk=".sdk/openrac-mod-sdk-$(python -c 'import json; print(json.load(open("sdk.lock"))["version"])')"
+          version=$(python -c 'import json; print(json.load(open("openrac-mod.json"))["version"])')
+          python "$sdk/tools/package_mod.py" --merge dist/ryno-ammo-drops-"$version"-*.zip -o dist/ryno-ammo-drops-"$version".zip
+          ls -l dist
+      - name: Upload test builds for download
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: RYNO-Ammo-Drops-Compiled
+          path: dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish release on version tags
+    needs: combined
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Download combined build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: RYNO-Ammo-Drops-Compiled
+          path: dist
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag dist/*.zip

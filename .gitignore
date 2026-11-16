@@ -1,0 +1,8 @@
+.sdk/
+build/
+dist/
+__pycache__/
+*.pyc
+.vs/
+.idea/
+.DS_Store
