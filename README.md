@@ -1,6 +1,6 @@
 # RYNO Ammo Drops — OpenRAC RAC1
 
-**Experimental v0.1.2 — test builds on `dev`; not yet verified in game.**
+**Experimental v0.1.2 — public community testing. NTSC-U drop behaviour tested in-game; PAL build not yet gameplay-tested.**
 
 Adds RYNO ammunition to the random ammo crate selection after you own the RYNO.
 RYNO joins the low-ammo priority pool with equal weight to other eligible weapons.
@@ -9,17 +9,22 @@ and the number of pickups remain unchanged. No game assets or save changes.
 
 Supports both PAL and NTSC-U.
 
-## Download automatic compiled builds
+## Install for community testing
 
-1. Open [Build and test](https://github.com/glawks/RYNO-Ammo-Drops/actions/workflows/build.yml).
-2. Choose the newest **successful** workflow run on `dev`.
-3. Under **Artifacts**, download **RYNO-Ammo-Drops-Compiled**.
-4. Extract the GitHub artifact ZIP, then install the inner
-   `ryno-ammo-drops-0.1.2.zip` with OpenRAC.
+In the OpenRAC Launcher, open **Mods** and add this GitHub repository URL:
 
-Individual Windows, Linux, and macOS compiled archives are also available as
-separate artifacts. Every push to `dev` starts a new build. Public releases
-are created only when a version tag is pushed after testing.
+`https://github.com/glawks/RYNO-Ammo-Drops`
+
+OpenRAC installs the appropriate compiled archive from the latest
+[GitHub Release](https://github.com/glawks/RYNO-Ammo-Drops/releases/latest).
+Alternatively, download your platform's `ryno-ammo-drops-0.1.2-<platform>.zip`
+from that release and install it in OpenRAC.
+
+Versioned GitHub Releases publish automatically after a successful build on
+`main`. The `dev` branch continues to provide test build artifacts through
+[GitHub Actions](https://github.com/glawks/RYNO-Ammo-Drops/actions/workflows/build.yml)
+without publishing a release. Each release includes the platform archives,
+a combined manual-install ZIP, and SHA256SUMS for verification.
 
 ## v0.1.2 fix and debugging
 
