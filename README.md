@@ -1,6 +1,6 @@
 # RYNO Ammo Drops — OpenRAC RAC1
 
-**Experimental v0.1.1 — test builds on `dev`; not yet verified in game.**
+**Experimental v0.1.2 — test builds on `dev`; not yet verified in game.**
 
 Adds RYNO ammunition to the random ammo crate selection after you own the RYNO.
 RYNO joins the low-ammo priority pool with equal weight to other eligible weapons.
@@ -15,13 +15,18 @@ Supports both PAL and NTSC-U.
 2. Choose the newest **successful** workflow run on `dev`.
 3. Under **Artifacts**, download **RYNO-Ammo-Drops-Compiled**.
 4. Extract the GitHub artifact ZIP, then install the inner
-   `ryno-ammo-drops-0.1.1.zip` with OpenRAC.
+   `ryno-ammo-drops-0.1.2.zip` with OpenRAC.
 
 Individual Windows, Linux, and macOS compiled archives are also available as
 separate artifacts. Every push to `dev` starts a new build. Public releases
 are created only when a version tag is pushed after testing.
 
-## Debugging v0.1.1
+## v0.1.2 fix and debugging
+
+Fixes a wrong inventory ID in the previous versions. Earlier builds read item 8
+(the Wrench) rather than item 23 (RYNO). This incorrectly reported RYNO
+as not owned and showed 0/0 ammunition, preventing even forced test drops.
+
 
 If RYNO ammo is not appearing, enable **Detailed log** in the mod's settings
 and break a few ammo crates. The OpenRAC log now reports whether they are random
@@ -63,7 +68,7 @@ The normal `ChooseDropItem` uses the current level's Gadgetron vendor
 stock. The RYNO is absent there. This mod wraps `rac1.ammo.choose_drop`
 and applies a mod-local RNG to random ammo crates, allowing RYNO to compete
 when owned and underfull without permanently altering vendor stock.
-RYNO is item 8. Ammo crate class is 511, and RYNO ammo's pickup
+RYNO is inventory/ammo item 23 (0x17), not the separate GadgetId 8. Ammo crate class is 511, and RYNO ammo's pickup
 class is 1438.
 
 MIT licensed; copyright (c) 2026 glawks.
