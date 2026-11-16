@@ -2,12 +2,35 @@
   "format": 2,
   "id": "ryno-ammo-drops",
   "name": "RYNO Ammo Drops",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "glawks",
   "description": "After you own the RYNO, random ammo crates can drop its ammunition alongside ordinary weapon ammo, with the normal priority for weapons that are low on ammo. Fixed ammo crates and enemy drops are unchanged.",
   "license": "MIT",
   "api": "1.11",
   "multiplayer": "gameplay",
-  "games": {"rac1": ["pal", "ntsc"]},
-  "hooks": ["rac1.ammo.choose_drop"]
+  "games": {
+    "rac1": [
+      "pal",
+      "ntsc"
+    ]
+  },
+  "hooks": [
+    "rac1.ammo.choose_drop"
+  ],
+  "settings": [
+    {
+      "key": "trace",
+      "name": "Detailed log",
+      "type": "bool",
+      "default": false,
+      "description": "Log ammo-crate decisions, ownership, ammo level, eligible weapons and whether RYNO was selected. Enable while troubleshooting."
+    },
+    {
+      "key": "force_ryno",
+      "name": "Force RYNO drops (testing)",
+      "type": "bool",
+      "default": false,
+      "description": "For testing only: every eligible random ammo crate drops RYNO ammo if you own it and it is not full. Fixed ammo crates are unaffected."
+    }
+  ]
 }
