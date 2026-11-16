@@ -1,6 +1,6 @@
 # RYNO Ammo Drops — OpenRAC RAC1
 
-**Experimental v0.1.0 — test builds on `dev`; not yet verified in game.**
+**Experimental v0.1.1 — test builds on `dev`; not yet verified in game.**
 
 Adds RYNO ammunition to the random ammo crate selection after you own the RYNO.
 RYNO joins the low-ammo priority pool with equal weight to other eligible weapons.
@@ -15,11 +15,24 @@ Supports both PAL and NTSC-U.
 2. Choose the newest **successful** workflow run on `dev`.
 3. Under **Artifacts**, download **RYNO-Ammo-Drops-Compiled**.
 4. Extract the GitHub artifact ZIP, then install the inner
-   `ryno-ammo-drops-0.1.0.zip` with OpenRAC.
+   `ryno-ammo-drops-0.1.1.zip` with OpenRAC.
 
 Individual Windows, Linux, and macOS compiled archives are also available as
 separate artifacts. Every push to `dev` starts a new build. Public releases
 are created only when a version tag is pushed after testing.
+
+## Debugging v0.1.1
+
+If RYNO ammo is not appearing, enable **Detailed log** in the mod's settings
+and break a few ammo crates. The OpenRAC log now reports whether they are random
+or assigned, the RYNO ownership flag, current/maximum RYNO ammo, how many
+other weapons are eligible, and whether the random roll selected RYNO.
+
+To eliminate unlucky drop weighting during testing, enable
+**Force RYNO drops (testing)** as well. This applies only to random ammo crates
+when you own RYNO and its ammunition is not full. It is disabled by default.
+Disable it again after you confirm RYNO pickups work. These settings do not
+alter your save.
 
 ## Test in game
 
