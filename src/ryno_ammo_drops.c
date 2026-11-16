@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: MIT
- * RYNO Ammo Drops for OpenRAC RAC1, experimental v0.1.1.
+ * RYNO Ammo Drops for OpenRAC RAC1, experimental v0.1.2.
  * No assets or game binaries are included.
  *
  * Original game's random ammo crates only choose from the current level's
  * Gadgetron vendor stock. This hook calls the original selector first, then
- * lets owned RYNO (item 8) compete for RANDOM AMMO CRATE drops under the same
+ * lets owned RYNO (inventory item 23) compete for RANDOM AMMO CRATE drops under the same
  * low-ammo priority; assigned/fixed crates and enemy drops are unchanged.
  */
 #include <stdint.h>
@@ -14,7 +14,7 @@
 #include "openrac/games/rac1.h"
 #include "priority.h"
 
-OPENRAC_MOD_DEFINE("ryno-ammo-drops", "0.1.1")
+OPENRAC_MOD_DEFINE("ryno-ammo-drops", "0.1.2")
 
 /* Some C SDKs include this hook only in the C++ header; its stable name and
  * signature are listed in sdk/bindings/rac1.json on both PAL and NTSC-U. */
@@ -24,7 +24,7 @@ OPENRAC_MOD_DEFINE("ryno-ammo-drops", "0.1.1")
 typedef int32_t (*openrac_rac1_Ammo_ChooseDrop)(openrac_gaddr moby, openrac_gaddr out_item);
 #endif
 
-#define RYNO_ITEM 8u
+#define RYNO_ITEM RYNO_ITEM_ID
 #define AMMO_CRATE_CLASS 0x01FFu
 #define MOBY_CLASS_OFFSET 0xA6u
 #define VENDOR_STOCK_SIZE 12u
