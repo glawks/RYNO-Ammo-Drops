@@ -1,62 +1,60 @@
-# RYNO Ammo Drops — OpenRAC RAC1
+# RYNO Ammo Drops
 
-**Experimental v0.1.2 — public community testing. NTSC-U drop behaviour tested in-game; PAL build not yet gameplay-tested.**
+An OpenRAC mod for **Ratchet & Clank (2002)** that lets random ammo crates drop **R.Y.N.O. ammunition** once you've acquired the weapon.
 
-Adds RYNO ammunition to the random ammo crate selection after you own the RYNO.
-RYNO joins the low-ammo priority pool with equal weight to other eligible weapons.
-It is not selected by the mod when full. Fixed ammo crates, defeated enemies,
-and the number of pickups remain unchanged. No game assets or save changes.
+The R.Y.N.O. becomes part of the game's normal low-ammo selection, so you can refill it from crates alongside your other weapons instead of relying solely on the vendor.
 
-Supports both PAL and NTSC-U.
+## Features
 
-## Install for community testing
+- **R.Y.N.O. ammo in random crates:** available only after you own the R.Y.N.O. and have room for more ammunition.
+- **Balanced with other weapons:** R.Y.N.O. competes with other eligible weapons that need ammo; it doesn't take over every crate.
+- **Original drops preserved:** when the R.Y.N.O. is full, the game's ordinary ammo selection is left unchanged.
+- **No additional pickups:** the mod changes the ammo type selected for a random crate; it does not spawn a bonus pickup.
+- **Minimal changes:** fixed/assigned ammo crates and enemy drops are left to the original game logic, with no permanent changes to vendor stock or the save format.
 
-In the OpenRAC Launcher, open **Mods** and add this GitHub repository URL:
+## Installation
 
-`https://github.com/glawks/RYNO-Ammo-Drops`
+1. Open the **OpenRAC Launcher** and go to **Mods**.
+2. Add a mod using this repository URL:
+   `https://github.com/glawks/RYNO-Ammo-Drops`
+3. Install and enable **RYNO Ammo Drops**, then start Ratchet & Clank.
 
-OpenRAC installs the appropriate compiled archive from the latest
-[GitHub Release](https://github.com/glawks/RYNO-Ammo-Drops/releases/latest).
-Alternatively, download your platform's `ryno-ammo-drops-0.1.2-<platform>.zip`
-from that release and install it in OpenRAC.
+The launcher downloads the appropriate build from the [latest GitHub Release](https://github.com/glawks/RYNO-Ammo-Drops/releases/latest).
 
-Versioned GitHub Releases publish automatically after a successful build on
-`main`. The `dev` branch continues to provide test build artifacts through
-[GitHub Actions](https://github.com/glawks/RYNO-Ammo-Drops/actions/workflows/build.yml)
-without publishing a release. Each release includes the platform archives,
-a combined manual-install ZIP, and SHA256SUMS for verification.
+For manual installation, download your platform's `ryno-ammo-drops-<version>-<platform>.zip` from [Releases](https://github.com/glawks/RYNO-Ammo-Drops/releases). A combined multi-platform archive is also provided.
 
-## v0.1.2 fix and debugging
+## How it works
 
-Fixes a wrong inventory ID in the previous versions. Earlier builds read item 8
-(the Wrench) rather than item 23 (RYNO). This incorrectly reported RYNO
-as not owned and showed 0/0 ammunition, preventing even forced test drops.
+The original game chooses random ammunition drops using the current level's Gadgetron vendor stock, which excludes the R.Y.N.O. This mod adds the owned R.Y.N.O. as an eligible choice when it needs ammunition, while preserving the existing selection for other weapons.
 
+For example, if the R.Y.N.O. and one other eligible weapon both need ammo, each has approximately a **50% chance** of being selected by the mod's weighting. If the R.Y.N.O. is already full, it will not be selected.
 
-If RYNO ammo is not appearing, enable **Detailed log** in the mod's settings
-and break a few ammo crates. The OpenRAC log now reports whether they are random
-or assigned, the RYNO ownership flag, current/maximum RYNO ammo, how many
-other weapons are eligible, and whether the random roll selected RYNO.
+Only *random* ammo-crate selections are affected. Crates with fixed drops and other kinds of pickups are not changed.
 
-To eliminate unlucky drop weighting during testing, enable
-**Force RYNO drops (testing)** as well. This applies only to random ammo crates
-when you own RYNO and its ammunition is not full. It is disabled by default.
-Disable it again after you confirm RYNO pickups work. These settings do not
-alter your save.
+## Settings
 
-## Test in game
+Both settings are **off by default** and are optional.
 
-1. Before buying the RYNO, break random ammo crates: no RYNO drops.
-2. Buy the RYNO and use some ammunition. Break random ammo crates:
-   RYNO ammo should appear among ordinary weapon ammo.
-3. Leave other weapons below full: they should still receive ammo.
-4. Refill RYNO completely: random crates should stop selecting its ammo.
-5. Confirm fixed/assigned ammo crates and enemy drops remain unchanged.
-6. Try reloading a save, switching planets, and running alongside other mods.
+| Setting | Description |
+| --- | --- |
+| **Detailed log** | Writes ammo-crate decisions, eligible weapons and R.Y.N.O. ammo levels to the OpenRAC log for troubleshooting. |
+| **Force RYNO drops (testing)** | Makes eligible random crates choose R.Y.N.O. ammo whenever you own it and it is not full. Intended for testing; disable for normal gameplay. |
+
+## Compatibility
+
+| Game / platform | Status |
+| --- | --- |
+| Ratchet & Clank 1 — NTSC-U | Tested in-game |
+| Ratchet & Clank 1 — PAL | Compiled; in-game testing still welcome |
+| Windows x86-64 | Compiled |
+| Linux x86-64 | Compiled |
+| macOS Apple Silicon / Intel | Compiled |
+
+The mod uses OpenRAC's `rac1.ammo.choose_drop` hook. It is not intended for Ratchet & Clank 2 or 3.
 
 ## Building from source
 
-Requires Python 3, CMake 3.20+, Ninja, and a C compiler:
+Requires Python 3, CMake 3.20 or newer, Ninja, a C compiler and the OpenRAC mod SDK (downloaded by the first command).
 
 ```sh
 python tools/fetch_sdk.py
@@ -65,15 +63,12 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-The SDK packaging helper packages `build/package/ryno_ammo_drops` for OpenRAC.
+GitHub Actions builds Windows, Linux and macOS packages automatically on `main` and `dev`. The `main` workflow also publishes a new GitHub Release when the manifest version has not already been released. Development artifacts can be found under [Actions](https://github.com/glawks/RYNO-Ammo-Drops/actions/workflows/build.yml).
 
-## Implementation
+## Feedback and bug reports
 
-The normal `ChooseDropItem` uses the current level's Gadgetron vendor
-stock. The RYNO is absent there. This mod wraps `rac1.ammo.choose_drop`
-and applies a mod-local RNG to random ammo crates, allowing RYNO to compete
-when owned and underfull without permanently altering vendor stock.
-RYNO is inventory/ammo item 23 (0x17), not the separate GadgetId 8. Ammo crate class is 511, and RYNO ammo's pickup
-class is 1438.
+If you find an issue, please [open an issue](https://github.com/glawks/RYNO-Ammo-Drops/issues) with your game region, OpenRAC version, mod version, steps to reproduce it and, if possible, the relevant OpenRAC log. PAL feedback is especially welcome.
 
-MIT licensed; copyright (c) 2026 glawks.
+## License
+
+[MIT](LICENSE) — Copyright © 2026 glawks.
